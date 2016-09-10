@@ -3,7 +3,8 @@ let {
     formatTags,
     countBarcodes,
     buildCartItems,
-    buildPromotedItems
+    buildPromotedItems,
+    calculateTotalprices
 } = require('../main/main');
 
 let {loadAllItems, loadPromotions} = require('../main/fixtures');
@@ -111,5 +112,36 @@ describe('pos discount', () => {
             }
         ];
         expect(promotedItems).toEqual(expected);
+    });
+
+    it('count all price', () => {
+        const promotedItems = [
+            {
+                barcode: 'ITEM000001',
+                name: '羽毛球',
+                unit: '个',
+                price: 1.00,
+                count: 3,
+                payprice: 2.00,
+                saved: 1.00
+            },
+            {
+                barcode: 'ITEM000003',
+                name: '荔枝',
+                unit: '斤',
+                price: 15.00,
+                count: 2,
+                payprice: 27.00,
+                saved: 3.00
+            }
+        ];
+        let totalprices = calculateTotalprices(promotedItems);
+
+        const expected = {
+             totalpayprice:29.00,
+             totalsaved: 4.00
+        };
+
+        expect(totalprices).toEqual(expected);
     });
 });

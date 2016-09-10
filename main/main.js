@@ -8,6 +8,7 @@ function printReceipt(tags) {
     let cartItems = buildCartItems(countedbarcodes, allItems);
     let promotions = loadPromotions();
     let promotedItems = buildPromotedItems(cartItems, promotions);
+    let totalprices = calculateTotalprices(promotedItems);
 
 }
 
@@ -60,7 +61,7 @@ function buildPromotedItems(cartItems, promotions) {
         let hasPromoted = nextpromotion.barcodes.includes(element.barcode);
         console.log(hasPromoted);
         element.saved = hasPromoted ? element.count * element.price * 0.1 : element.saved;
-        element.payprice = hasPromoted ? element.price *element.count - element.saved: element.payprice;
+        element.payprice = hasPromoted ? element.price * element.count - element.saved : element.payprice;
         return element;
     });
 }
@@ -70,9 +71,19 @@ function _fixPrice(number) {
     return parseFloat(number.toFixed(2));
 }
 
+function calculateTotalprices(promotedItems) {
+    return _.reduce(promotedItems, (result, promotedItem) => {
+        result.totalpayprice += promotedItem.payprice;
+        result.totalsaved += promotedItem.saved;
+        return result;
+    }, {totalpayprice: 0, totalsaved: 0});
+}
+
+
 module.exports = {
     formatTags: formatTags,
     countBarcodes: countBarcodes,
     buildCartItems: buildCartItems,
     buildPromotedItems: buildPromotedItems,
+    calculateTotalprices: calculateTotalprices,
 };
