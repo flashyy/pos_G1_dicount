@@ -9,6 +9,7 @@ function printReceipt(tags) {
     let promotions = loadPromotions();
     let promotedItems = buildPromotedItems(cartItems, promotions);
     let totalprices = calculateTotalprices(promotedItems);
+    let receipt = buildReceipt(promotedItems, totalprices);
 
 }
 
@@ -42,7 +43,7 @@ function countBarcodes(formattedTags) {
 function buildCartItems(countedBarcodes, allItems) {
     return _.map(countedBarcodes, ({count, barcode}) => {
         let {name, unit, price} = getExistElementByBarcode(allItems, barcode);
-        return {name, unit, price, count, barcode};
+        return {name, unit, price, count, barcode, type: ''};
     });
 }
 
@@ -53,15 +54,16 @@ function buildPromotedItems(cartItems, promotions) {
         let totalPrice = cartItem.count * cartItem.price;
         let saved = hasPromoted ? totalPrice / 3 : 0;
         let payprice = totalPrice - saved;
+        cartItem.type = hasPromoted ? '买三赠一' : '';
         return Object.assign({}, cartItem, {payprice, saved: _fixPrice(saved)});
     });
-
+    // console.log(one);
     let nextpromotion = promotions.find((promotion) => promotion.type === 'OTHER_PROMOTION');
     return _.map(one, (element) => {
         let hasPromoted = nextpromotion.barcodes.includes(element.barcode);
-        console.log(hasPromoted);
         element.saved = hasPromoted ? element.count * element.price * 0.1 : element.saved;
         element.payprice = hasPromoted ? element.price * element.count - element.saved : element.payprice;
+        element.type = hasPromoted ? '九折' : element.type;
         return element;
     });
 }
@@ -79,6 +81,20 @@ function calculateTotalprices(promotedItems) {
     }, {totalpayprice: 0, totalsaved: 0});
 }
 
+function buildReceipt(promotedItems, {totalpayprice, totalsaved}) {
+    let savedItems = promotedItems.filter((promotedItem)=> promotedItem.saved > 0).map(({name, type}) => {
+        return {name, type}
+    });
+
+    return {
+        receiptItems: promotedItems.map(({name, unit, count, price, payprice, saved}) => {
+            return {name, unit, count, payprice, price, saved};
+        }),
+        savedItems,
+        totalpayprice, totalsaved
+    }
+}
+
 
 module.exports = {
     formatTags: formatTags,
@@ -86,4 +102,5 @@ module.exports = {
     buildCartItems: buildCartItems,
     buildPromotedItems: buildPromotedItems,
     calculateTotalprices: calculateTotalprices,
+    buildReceipt: buildReceipt,
 };
